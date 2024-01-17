@@ -40,6 +40,16 @@ def home():
 @app.route('/register', methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+        email = request.form.get('email')
+        result = db.session.execute(db.select(User).where(User.email == email))
+        # Note, email in db is unique so will only have one result.
+        user = result.scalar()
+        error = None
+        if user:
+            # User already exists
+            flash("You've already signed up with this email, log in instead!")
+            return redirect(url_for('login'))
+        
         new_user = User(
             email = request.form["email"],
             password = generate_password_hash(request.form["password"], method="pbkdf2:sha256", salt_length=8),  # hash and salted poassword
@@ -57,20 +67,26 @@ def register():
 
 @app.route('/login', methods=["GET", "POST"])
 def login():
+    error = None
     if request.method == "POST":
         email = request.form.get("email")
         password = request.form.get("password")
-
         # Find user by email provided.
         result = db.session.execute(db.select(User).where(User.email == email))
         user = result.scalar()
-
-        # Check stored password hash against entered password hashed.
-        if check_password_hash(user.password, password):
-            login_user(user)
-            return redirect(url_for("secrets"))
-        
-    return render_template("login.html")
+        if user:
+            # Check stored password hash against entered password hashed.
+            if check_password_hash(user.password, password):
+                login_user(user)
+                flash("You  were successfully logged in!")
+                return redirect(url_for("secrets"))
+            else:
+                error = "Password is incorrect, please try again."
+                # return redirect(url_for("login", error=error))
+        else:
+            error = "That email does not exist, please try again."
+            # return redirect(url_for("login", error=error))
+    return render_template("login.html", error=error)        
 
 # Only logged-in users ca access this route
 @app.route('/secrets')
