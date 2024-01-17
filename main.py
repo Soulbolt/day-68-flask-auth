@@ -39,7 +39,7 @@ def register():
         )
         db.session.add(new_user)
         db.session.commit()
-        return redirect(url_for("secrets"))
+        return redirect(url_for("secrets", name=new_user.name))
     return render_template("register.html")
 
 
@@ -50,7 +50,9 @@ def login():
 
 @app.route('/secrets')
 def secrets():
-    return render_template("secrets.html")
+    name = request.args.get("name")
+    # user_name = db.get_or_404(User, name)
+    return render_template("secrets.html", name=name)
 
 
 @app.route('/logout')
@@ -60,7 +62,7 @@ def logout():
 
 @app.route('/download')
 def download():
-    pass
+    return send_from_directory("static", path="files/cheat_sheet.pdf")
 
 
 if __name__ == "__main__":
