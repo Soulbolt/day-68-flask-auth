@@ -34,7 +34,8 @@ with app.app_context():
 
 @app.route('/')
 def home():
-    return render_template("index.html")
+    # Passing True or False if user is authenticated.
+    return render_template("index.html", logged_in=current_user.is_authenticated)
 
 
 @app.route('/register', methods=["GET", "POST"])
@@ -62,7 +63,7 @@ def register():
         login_user(new_user)
         # Can redirect and get name from teh current_user
         return redirect(url_for("secrets"))
-    return render_template("register.html")
+    return render_template("register.html", logged_in=current_user.is_authenticated)
 
 
 @app.route('/login', methods=["GET", "POST"])
@@ -86,14 +87,14 @@ def login():
         else:
             error = "That email does not exist, please try again."
             # return redirect(url_for("login", error=error))
-    return render_template("login.html", error=error)        
+    return render_template("login.html", error=error, logged_in=current_user.is_authenticated)        
 
 # Only logged-in users ca access this route
 @app.route('/secrets')
 @login_required
 def secrets():
     # Passing name from current_user
-    return render_template("secrets.html", name=current_user.name)
+    return render_template("secrets.html", name=current_user.name, logged_in=True)
 
 
 @app.route('/logout')
